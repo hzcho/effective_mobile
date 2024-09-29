@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS songs (
+    id BIGSERIAL PRIMARY KEY,
+    song VARCHAR(255) NOT NULL,
+    group_name VARCHAR(255) NOT NULL,
+    release_date VARCHAR(255) NOT NULL, 
+    link VARCHAR(255),
+    text TEXT NOT NULL
+);
