@@ -11,7 +11,7 @@ type Usecases struct {
 	usecase.Song
 }
 
-func NewUsecases(repos repository.Repositories, log *logrus.Logger) *Usecases {
+func NewUsecases(repos *repository.Repositories, log *logrus.Logger) *Usecases {
 	return &Usecases{
 		Song: NewSong(repos.Song, log),
 	}

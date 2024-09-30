@@ -7,15 +7,18 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 type Song struct {
 	songUsecase usecase.Song
+	log         *logrus.Logger
 }
 
-func NewSong(songUsecases usecase.Song) *Song {
+func NewSong(songUsecases usecase.Song, log *logrus.Logger) *Song {
 	return &Song{
 		songUsecase: songUsecases,
+		log:         log,
 	}
 }
 
@@ -33,6 +36,8 @@ func NewSong(songUsecases usecase.Song) *Song {
 // @Failure 500 {string} string "Server error"
 // @Router /api/v1/songs/info [get]
 func (s *Song) GetLib(c *gin.Context) {
+	log := s.log.WithField("op", "internal/group/song/GetLib")
+
 	pageStr := c.Query("page")
 	perPageStr := c.Query("per_page")
 
@@ -43,18 +48,22 @@ func (s *Song) GetLib(c *gin.Context) {
 		var err error
 		page, err = strconv.Atoi(pageStr)
 		if err != nil {
+			log.WithError(err).Error("Invalid page parameter")
 			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid page parameter")
 			return
 		}
+		log.Infof("Page parameter parsed: %d", page)
 	}
 
 	if perPageStr != "" {
 		var err error
 		perPage, err = strconv.Atoi(perPageStr)
 		if err != nil {
+			log.WithError(err).Error("Invalid per_page parameter")
 			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid per_page parameter")
 			return
 		}
+		log.Infof("PerPage parameter parsed: %d", perPage)
 	}
 
 	group := c.Query("group")
@@ -67,12 +76,16 @@ func (s *Song) GetLib(c *gin.Context) {
 		Song:    song,
 	}
 
+	log.Infof("Fetching library with input: %+v", input)
+
 	songs, err := s.songUsecase.GetLib(c, input)
 	if err != nil {
+		log.WithError(err).Error("Failed to fetch library")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
+	log.Infof("Successfully fetched songs: %+v", songs)
 	c.JSON(http.StatusOK, songs)
 }
 
@@ -90,11 +103,15 @@ func (s *Song) GetLib(c *gin.Context) {
 // @Failure 500 {string} string "Server error"
 // @Router /api/v1/songs/{id}/verses [get]
 func (s *Song) GetVerses(c *gin.Context) {
+	log := s.log.WithField("op", "internal/group/song/GetVerses")
+
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		log.WithError(err).Error("Invalid song ID")
 		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid song ID")
 		return
 	}
+	log.Infof("Song ID parsed: %d", id)
 
 	verseStr := c.Query("page")
 	perVerseStr := c.Query("per_page")
@@ -103,21 +120,23 @@ func (s *Song) GetVerses(c *gin.Context) {
 	perVerse := 0
 
 	if verseStr != "" {
-		var err error
 		verse, err = strconv.Atoi(verseStr)
 		if err != nil {
+			log.WithError(err).Error("Invalid page parameter")
 			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid page parameter")
 			return
 		}
+		log.Infof("Verse parameter parsed: %d", verse)
 	}
 
 	if perVerseStr != "" {
-		var err error
 		perVerse, err = strconv.Atoi(perVerseStr)
 		if err != nil {
+			log.WithError(err).Error("Invalid per_page parameter")
 			c.AbortWithStatusJSON(http.StatusBadRequest, "invalid per_page parameter")
 			return
 		}
+		log.Infof("PerVerse parameter parsed: %d", perVerse)
 	}
 
 	input := model.VersesRequest{
@@ -125,13 +144,16 @@ func (s *Song) GetVerses(c *gin.Context) {
 		Page:    verse,
 		PerPage: perVerse,
 	}
+	log.Infof("Fetching verses with input: %+v", input)
 
 	verses, err := s.songUsecase.GetVerses(c, input)
 	if err != nil {
+		log.WithError(err).Error("Failed to fetch verses")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
+	log.Infof("Successfully fetched verses: %+v", verses)
 	c.JSON(http.StatusOK, verses)
 }
 
@@ -146,19 +168,24 @@ func (s *Song) GetVerses(c *gin.Context) {
 // @Failure 500 {string} string "Server error"
 // @Router /api/v1/songs [post]
 func (s *Song) Add(c *gin.Context) {
+	log := s.log.WithField("op", "internal/group/song/Add")
+
 	input := model.AddSong{}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
+		log.WithError(err).Error("Incorrect fields in request")
 		c.JSON(http.StatusBadRequest, "incorrect fields")
 		return
 	}
 
 	id, err := s.songUsecase.Add(c, input)
 	if err != nil {
+		log.WithError(err).Error("Failed to add song")
 		c.JSON(http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
+	log.Infof("Successfully added song with ID: %d", id)
 	c.JSON(http.StatusOK, id)
 }
 
@@ -168,22 +195,26 @@ func (s *Song) Add(c *gin.Context) {
 // @ID update-song
 // @Produce json
 // @Param id path int true "Song ID"
-// @Param song body model.UpdateSong true "Updated song details"
+// @Param song body model.UpdateSongSwagger true "Updated song details"
 // @Success 200 {object} model.Song "Updated song details"
 // @Failure 400 {string} string "Incorrect fields"
 // @Failure 404 {string} string "Song not found"
 // @Failure 500 {string} string "Server error"
 // @Router /api/v1/songs/{id} [put]
 func (s *Song) Update(c *gin.Context) {
+	log := s.log.WithField("op", "internal/group/song/Update")
+
 	input := model.UpdateSong{}
 
 	if err := c.Bind(&input); err != nil {
+		log.WithError(err).Error("Incorrect fields in request")
 		c.AbortWithStatusJSON(http.StatusBadRequest, "incorrect fields")
 		return
 	}
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		log.WithError(err).Error("Invalid song ID")
 		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid song ID")
 		return
 	}
@@ -192,10 +223,12 @@ func (s *Song) Update(c *gin.Context) {
 
 	song, err := s.songUsecase.Update(c, input)
 	if err != nil {
+		log.WithError(err).Error("Failed to update song")
 		c.AbortWithStatusJSON(http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
+	log.Infof("Successfully updated song: %+v", song)
 	c.JSON(http.StatusOK, song)
 }
 
@@ -211,18 +244,22 @@ func (s *Song) Update(c *gin.Context) {
 // @Failure 500 {string} string "Server error"
 // @Router /api/v1/songs/{id} [delete]
 func (s *Song) Delete(c *gin.Context) {
+	log := s.log.WithField("op", "internal/group/song/Delete")
 
 	id, err := strconv.ParseUint(c.Param("id"), 10, 64)
 	if err != nil {
+		log.WithError(err).Error("Invalid song ID")
 		c.AbortWithStatusJSON(http.StatusBadRequest, "invalid song ID")
 		return
 	}
 
 	err = s.songUsecase.Delete(c, id)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, "something went wrong")
+		log.WithError(err).Error("Failed to delete song")
+		c.AbortWithStatusJSON(http.StatusInternalServerError, "something went wrong")
 		return
 	}
 
+	log.Infof("Successfully deleted song with ID: %d", id)
 	c.JSON(http.StatusOK, "the song has been deleted")
 }

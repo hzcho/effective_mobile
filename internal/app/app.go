@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/sirupsen/logrus"
+	ginlogrus "github.com/toorop/gin-logrus"
 )
 
 type App struct {
@@ -28,10 +29,11 @@ func NewApp(ctx context.Context, cfg *config.Config, log *logrus.Logger) *App {
 		panic(err)
 	}
 
-	repos := repository.NewRepositories(pool)
-	usecases := usecase.NewUsecases(*repos, log)
-	groups := group.NewGroups(usecases)
+	repos := repository.NewRepositories(pool, log)
+	usecases := usecase.NewUsecases(repos, log)
+	groups := group.NewGroups(usecases, log)
 	router := gin.New()
+	router.Use(ginlogrus.Logger(log))
 	handler.InitRoutes(router, *groups)
 	server := server.NewServer(&cfg.Server, router)
 

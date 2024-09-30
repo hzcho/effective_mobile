@@ -151,7 +151,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.UpdateSong"
+                            "$ref": "#/definitions/model.UpdateSongSwagger"
                         }
                     }
                 ],
@@ -360,14 +360,11 @@ const docTemplate = `{
                 }
             }
         },
-        "model.UpdateSong": {
+        "model.UpdateSongSwagger": {
             "type": "object",
             "properties": {
                 "group": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "link": {
                     "type": "string"
@@ -376,9 +373,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "song": {
-                    "type": "string"
-                },
-                "text": {
                     "type": "string"
                 }
             }
@@ -412,7 +406,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "song library API API",
+	Title:            "song library API",
 	Description:      "This is an API server for working with songs",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

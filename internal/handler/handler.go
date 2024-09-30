@@ -10,7 +10,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// @title           song library API API
+// @title           song library API
 // @version         1.0
 // @description     This is an API server for working with songs
 //

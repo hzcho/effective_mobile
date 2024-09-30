@@ -2,7 +2,7 @@
     "swagger": "2.0",
     "info": {
         "description": "This is an API server for working with songs",
-        "title": "song library API API",
+        "title": "song library API",
         "contact": {},
         "version": "1.0"
     },
@@ -144,7 +144,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.UpdateSong"
+                            "$ref": "#/definitions/model.UpdateSongSwagger"
                         }
                     }
                 ],
@@ -353,14 +353,11 @@
                 }
             }
         },
-        "model.UpdateSong": {
+        "model.UpdateSongSwagger": {
             "type": "object",
             "properties": {
                 "group": {
                     "type": "string"
-                },
-                "id": {
-                    "type": "integer"
                 },
                 "link": {
                     "type": "string"
@@ -369,9 +366,6 @@
                     "type": "string"
                 },
                 "song": {
-                    "type": "string"
-                },
-                "text": {
                     "type": "string"
                 }
             }

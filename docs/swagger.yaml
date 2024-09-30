@@ -42,19 +42,15 @@ definitions:
       text:
         type: string
     type: object
-  model.UpdateSong:
+  model.UpdateSongSwagger:
     properties:
       group:
         type: string
-      id:
-        type: integer
       link:
         type: string
       releaseDate:
         type: string
       song:
-        type: string
-      text:
         type: string
     type: object
   model.VersesResponse:
@@ -74,7 +70,7 @@ host: localhost:8080
 info:
   contact: {}
   description: This is an API server for working with songs
-  title: song library API API
+  title: song library API
   version: "1.0"
 paths:
   /api/v1/songs:
@@ -152,7 +148,7 @@ paths:
         name: song
         required: true
         schema:
-          $ref: '#/definitions/model.UpdateSong'
+          $ref: '#/definitions/model.UpdateSongSwagger'
       produces:
       - application/json
       responses:
